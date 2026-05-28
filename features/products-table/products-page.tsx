@@ -25,60 +25,32 @@ export default function ProductsTable({ data }: ProductsTableProps) {
 
   return (
     <div className="overflow-auto h-[95vh]">
-      <div className="sticky top-0 grid-cols-2  grid bg-background z-10 h-10">
-        <input
-          type="text"
-          placeholder="...search"
-          onChange={(e) => setItemSearch(e.target.value)}
-          className="p-2 pl-6 outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 text-xs"
-        />
-
-        <input
-          type="text"
-          placeholder="...id"
-          onChange={(e) => setIdSearch(e.target.value)}
-          className="p-2 outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 text-xs"
-        />
-      </div>
       <Table className="table-fixed">
         <TableBody>
-          {data
-            .filter(
-              (product) =>
-                valueFilterProducts === "all" ||
-                product.category === valueFilterProducts,
-            )
-            .filter((product) =>
-              product.name.toLowerCase().includes(normalizedSearch),
-            )
-            .filter((product) => product.id?.toString().includes(idSearch))
-            .sort((a, b) =>
-              a.name.localeCompare(b.name, "ru", { sensitivity: "base" }),
-            )
-            .map((product, index) => (
-              <TableRow key={product.id} className="[&>td]:py-1.5">
-                <TableCell className="w-6 text-xs px-2">{index + 1}</TableCell>
-                <TableCell
-                  className="truncate cursor-pointer text-blue-600 w-44 text-xs px-4"
-                  onClick={() => handleView(product.id?.toString()!)}
-                >
-                  {product.name}
-                </TableCell>
-                <TableCell className="text-xs hidden md:table-cell">
-                  {CATEGORY_UNIT.find((u) => u.value === product.unit)?.label}
-                </TableCell>
-                <TableCell className="text-xs w-30 text-blue-600 font-bold">
-                  {product.id || "-"}
-                </TableCell>
-                <TableCell className="text-xs">{product.coefficient}</TableCell>
-                <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
-                  {
-                    CATEGORY_PRODUCT.find((c) => c.value === product.category)
-                      ?.label
-                  }
-                </TableCell>
-              </TableRow>
-            ))}
+          {data.map((product, index) => (
+            <TableRow key={product.id} className="[&>td]:py-1.5">
+              <TableCell className="w-6 text-xs px-2">{index + 1}</TableCell>
+              <TableCell
+                className="truncate cursor-pointer text-blue-600 w-44 text-xs px-4"
+                onClick={() => handleView(product.id?.toString()!)}
+              >
+                {product.name}
+              </TableCell>
+              <TableCell className="text-xs hidden md:table-cell">
+                {CATEGORY_UNIT.find((u) => u.value === product.unit)?.label}
+              </TableCell>
+              <TableCell className="text-xs w-30 text-blue-600 font-bold">
+                {product.id || "-"}
+              </TableCell>
+              <TableCell className="text-xs">{product.coefficient}</TableCell>
+              <TableCell className="hidden md:table-cell text-xs text-muted-foreground px-4 text-end">
+                {
+                  CATEGORY_PRODUCT.find((c) => c.value === product.category)
+                    ?.label
+                }
+              </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </div>

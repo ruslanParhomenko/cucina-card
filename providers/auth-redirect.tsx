@@ -8,7 +8,6 @@ const SignInRedirect = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const { status, data } = useSession();
 
-  console.log("AuthRedirect status:", status);
   const role = data?.user?.role;
 
   useEffect(() => {

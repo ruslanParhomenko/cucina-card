@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   SubmitHandler,
   useFieldArray,
@@ -8,7 +8,7 @@ import {
   useWatch,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Trash2Icon, PlusIcon, SaveIcon, SaveOff } from "lucide-react";
+import { Trash2Icon, PlusIcon } from "lucide-react";
 
 import TextInput from "@/components/input/text-input";
 import NumericInput from "@/components/input/numeric-input";
@@ -43,21 +43,19 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import SelectFieldWithSearch from "@/components/input/select-with-search";
-import PrintButton from "@/components/buttons/print-button";
+
 import { cn } from "@/lib/utils";
 import { CATEGORY } from "./constants";
 import { useSession } from "next-auth/react";
-import ActionButton from "@/components/buttons/action-button";
-import { Button } from "@/components/ui/button";
+
+import { useEdit } from "@/providers/edit-provider";
 
 export default function CardForm({
   dataProduct,
   dataCard,
-  isCreate = false,
 }: {
   dataProduct: ProductType[];
   dataCard?: CalculationCardType;
-  isCreate?: boolean;
 }) {
   const router = useRouter();
   const session = useSession();
@@ -66,13 +64,11 @@ export default function CardForm({
 
   const idCard = dataCard && dataCard?.id?.toString();
 
-  const [isEdit, setIsEdit] = useState(isCreate);
+  const { isEdit, setIsEdit, registerReset, registerDelete } = useEdit();
 
   const disabled = !isEdit || !isAdmin;
 
   const STORAGE_KEY = "add-card";
-
-  const componentRef = useRef<HTMLDivElement>(null);
 
   const [dataOptions, setDataOptions] = useState<
     { label: string; value: string }[]
@@ -145,8 +141,6 @@ export default function CardForm({
     };
   }, [recipe, portion, dataProduct]);
 
-  const url = "/home#tab=cards";
-
   const onSubmit: SubmitHandler<CalculationCardType> = async (data) => {
     const { id, ...rest } = data;
     try {
@@ -173,7 +167,8 @@ export default function CardForm({
 
       toast.error("Ошибка сохранения продукта");
     }
-    router.push(url);
+    setIsEdit(false);
+    router.back();
   };
 
   useEffect(() => {
@@ -192,7 +187,16 @@ export default function CardForm({
       form.reset(dataCard);
       RecipeArray.replace(dataCard.recipe);
     }
+    if (idCard) {
+      registerDelete(async () => {
+        await deleteCard(idCard);
+      });
+    }
   }, [dataCard]);
+
+  useEffect(() => {
+    registerReset(() => form.reset(calculationCardDefaultValues));
+  }, []);
   if (!isLoaded) {
     return (
       <div className="flex items-center justify-center h-screen w-full">
@@ -207,44 +211,13 @@ export default function CardForm({
 
   return (
     <FormWrapper form={form} onSubmit={onSubmit} id={pathname}>
-      <div ref={componentRef} className="flex flex-col justify-between h-full">
-        <div>
-          <div className="flex w-full justify-between items-center py-2 px-2 sticky top-0 bg-background z-20 mb-2">
-            {idCard && isAdmin && (
-              <div className="flex items-center gap-8">
-                <ActionButton id={idCard} handleDelete={deleteCard} />
-                <button
-                  type="button"
-                  onClick={() => isAdmin && setIsEdit((prev) => !prev)}
-                  className="flex  cursor-pointer"
-                >
-                  {isEdit ? (
-                    <div className="text-rd flex gap-4 justify-center items-center">
-                      <SaveIcon className="h-4 w-4 text-blue-600" />
-                      <span className="text-xs text-muted-foreground">
-                        save mod
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="text-rd flex gap-4 justify-center items-center">
-                      <SaveOff className="h-4 w-4 text-red-600" />
-                      <span className="text-xs text-muted-foreground">
-                        view mod
-                      </span>
-                    </div>
-                  )}
-                </button>
-              </div>
-            )}
-
-            <PrintButton componentRef={componentRef} />
-          </div>
-
+      <div className="flex flex-col h-[88dvh] p-2 print:p-8">
+        <div className="flex flex-col gap-1">
           <TextInput
-            fieldLabel="Технологическая карта:"
+            fieldLabel="Тех карта:"
             fieldName="id"
             orientation="horizontal"
-            classNameInput="h-5! border-0 shadow-none border-b rounded-none text-sm font-bold"
+            classNameInput="h-5! border-0 shadow-none border-b rounded-none"
             disabled={disabled}
           />
 
@@ -253,7 +226,7 @@ export default function CardForm({
             fieldName="category"
             orientation="horizontal"
             options={CATEGORY}
-            classNameSelect="border-0 shadow-none border-b rounded-none text-black! h-5!"
+            classNameSelect="border-0 shadow-none border-b rounded-none text-black! h-5! [&>svg]:hidden"
             disabled={disabled}
           />
 
@@ -261,7 +234,7 @@ export default function CardForm({
             fieldLabel="Наименование"
             fieldName="name"
             orientation="horizontal"
-            classNameInput="h-5! border-0 shadow-none border-b rounded-none text-sm text-blue-600 font-bold"
+            classNameInput="h-5! border-0 shadow-none border-b rounded-none font-bold"
             disabled={disabled}
           />
 
@@ -269,7 +242,7 @@ export default function CardForm({
             fieldLabel="Срок хранения:"
             fieldName="expirationPeriod"
             orientation="horizontal"
-            classNameInput="h-5! border-0 shadow-none border-b rounded-none text-sm"
+            classNameInput="h-5! border-0 shadow-none border-b rounded-none"
             disabled={disabled}
           />
 
@@ -277,203 +250,196 @@ export default function CardForm({
             fieldLabel="Вес:"
             fieldName="weight"
             orientation="horizontal"
-            classNameInput="h-5! border-0 shadow-none border-b rounded-none text-sm"
+            classNameInput="h-5! border-0 shadow-none border-b rounded-none"
             disabled={disabled}
           />
         </div>
-
-        <Table className="md:table-fixed">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-6 md:w-8" />
-              <TableHead className="w-32 md:w-60" />
-              <TableHead className="w-8 md:w-12" />
-              <TableHead colSpan={2} className="text-center">
-                1 {category === "pf" || weight === "kg" ? "кг" : "порция"}
-              </TableHead>
-              <TableHead colSpan={2} className="text-center">
-                <div className="flex justify-center items-center gap-3">
-                  <NumericInput
-                    fieldName="portion"
-                    className="w-full h-full  border-0 shadow-none border-b rounded-none"
-                    disabled={disabled}
-                  />
-                  {category === "pf" || weight === "kg" ? "кг" : "порция"}
-                </div>
-              </TableHead>
-              <TableHead className="w-14" />
-            </TableRow>
-
-            <TableRow>
-              <TableHead className="w-8 border-r"></TableHead>
-              <TableHead className="text-center">продукт</TableHead>
-              <TableHead className="border-x w-16 text-center">ед</TableHead>
-              <TableHead className="border-x w-30 text-center">
-                брутто
-              </TableHead>
-              <TableHead className="border-x w-30 text-center">нетто</TableHead>
-              <TableHead className="border-x w-30 text-center">
-                брутто
-              </TableHead>
-              <TableHead className="border-x w-30 text-center">нетто</TableHead>
-              <TableHead className="w-18" />
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {RecipeArray.fields.map((field, idx) => {
-              const { neto, bruto2, neto2, product } =
-                computedValues.values[idx] || {};
-
-              const isLast = idx === RecipeArray.fields.length - 1;
-              const isOnlyOne = RecipeArray.fields.length === 1;
-
-              return (
-                <TableRow key={field.id} className="[&>td]:py-0">
-                  <TableCell className="border-r text-start px-1 text-xs">
-                    {idx + 1}
-                  </TableCell>
-
-                  <TableCell className="truncate">
-                    <SelectFieldWithSearch
-                      options={dataOptions}
-                      fieldName={`recipe.${idx}.nameId`}
-                      onValueChange={(value) => {
-                        const product = dataProduct.find(
-                          (item) => item.id?.toString() === value,
-                        );
-
-                        form.setValue(
-                          `recipe.${idx}.name`,
-                          product?.name ?? "",
-                        );
-                        form.setValue(
-                          `recipe.${idx}.unit`,
-                          product?.unit ?? "",
-                        );
-                      }}
-                      className="border-0 h-7! text-blue-600 font-bold"
-                      disabled={disabled}
-                    />
-                  </TableCell>
-
-                  <TableCell className="border-x">
-                    <input
-                      {...form.register(`recipe.${idx}.unit`)}
-                      className="text-center w-full h-7 text-xs"
-                      disabled={disabled}
-                    />
-                  </TableCell>
-
-                  <TableCell className="border-x md:hidden">
+        <div className="flex-1 mt-8">
+          <Table className="md:table-fixed table-auto">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-6 md:w-8" />
+                <TableHead className="w-30 md:w-60" />
+                <TableHead className="w-6 md:w-12" />
+                <TableHead colSpan={2} className="text-center">
+                  1 {category === "pf" || weight === "kg" ? "кг" : "порция"}
+                </TableHead>
+                <TableHead colSpan={2} className="text-center">
+                  <div className="flex justify-center items-center gap-3">
                     <NumericInput
-                      fieldName={`recipe.${idx}.quantity`}
-                      className="border-0 shadow-none rounded-none w-full h-7 text-center "
-                      disabled={disabled}
-                      floating={true}
-                    />
-                  </TableCell>
-                  <TableCell className="border-x  hidden md:table-cell">
-                    <input
-                      {...form.register(`recipe.${idx}.quantity`)}
-                      className="border-0 shadow-none rounded-none w-full h-7 text-center font-bold"
+                      fieldName="portion"
+                      className="h-full border-0 shadow-none border-b rounded-none"
                       disabled={disabled}
                     />
-                  </TableCell>
+                    {category === "pf" || weight === "kg" ? "кг" : "порция"}
+                  </div>
+                </TableHead>
+                <TableHead className="w-14" />
+              </TableRow>
 
-                  <TableCell className="border-x text-center ">
-                    {product && neto?.toFixed(4)}
-                  </TableCell>
+              <TableRow>
+                <TableHead className="w-8 border-r"></TableHead>
+                <TableHead className="text-center">продукт</TableHead>
+                <TableHead className="border-x w-16 text-center">ед</TableHead>
+                <TableHead className="border-x w-30 text-center">
+                  брутто
+                </TableHead>
+                <TableHead className="border-x w-30 text-center">
+                  нетто
+                </TableHead>
+                <TableHead className="border-x w-30 text-center">
+                  брутто
+                </TableHead>
+                <TableHead className="border-x w-30 text-center">
+                  нетто
+                </TableHead>
+                <TableHead className="w-18" />
+              </TableRow>
+            </TableHeader>
 
-                  <TableCell className="border-x text-center font-bold text-blue-600">
-                    {product && bruto2?.toFixed(4)}
-                  </TableCell>
+            <TableBody>
+              {RecipeArray.fields.map((field, idx) => {
+                const { neto, bruto2, neto2, product } =
+                  computedValues.values[idx] || {};
 
-                  <TableCell className="border-x text-center text-blue-600">
-                    {product && neto2?.toFixed(4)}
-                  </TableCell>
+                const isLast = idx === RecipeArray.fields.length - 1;
+                const isOnlyOne = RecipeArray.fields.length === 1;
 
-                  <TableCell
-                    className={cn(
-                      "text-end print:hidden",
-                      disabled && "hidden",
-                    )}
-                  >
-                    <div className="flex justify-between gap-2">
-                      <Trash2Icon
-                        className="cursor-pointer w-4 h-4 text-red-700"
-                        onClick={() =>
-                          isOnlyOne
-                            ? RecipeArray.replace({
+                return (
+                  <TableRow key={field.id} className="[&>td]:py-0">
+                    <TableCell className="border-r text-start px-1 text-xs">
+                      {idx + 1}
+                    </TableCell>
+
+                    <TableCell className="truncate">
+                      <SelectFieldWithSearch
+                        options={dataOptions}
+                        fieldName={`recipe.${idx}.nameId`}
+                        onValueChange={(value) => {
+                          const product = dataProduct.find(
+                            (item) => item.id?.toString() === value,
+                          );
+
+                          form.setValue(
+                            `recipe.${idx}.name`,
+                            product?.name ?? "",
+                          );
+                          form.setValue(
+                            `recipe.${idx}.unit`,
+                            product?.unit ?? "",
+                          );
+                        }}
+                        className="border-0 h-7!"
+                        disabled={disabled}
+                      />
+                    </TableCell>
+
+                    <TableCell className="border-x">
+                      <input
+                        {...form.register(`recipe.${idx}.unit`)}
+                        className="text-center w-full h-7 text-xs"
+                        disabled={disabled}
+                      />
+                    </TableCell>
+
+                    <TableCell className="border-x md:hidden">
+                      <NumericInput
+                        fieldName={`recipe.${idx}.quantity`}
+                        className="border-0 shadow-none rounded-none w-full h-7 text-center p-0"
+                        disabled={disabled}
+                        floating={true}
+                      />
+                    </TableCell>
+                    <TableCell className="border-x  hidden md:table-cell">
+                      <input
+                        {...form.register(`recipe.${idx}.quantity`)}
+                        className="border-0 shadow-none rounded-none w-full h-7 text-center font-bold"
+                        disabled={disabled}
+                      />
+                    </TableCell>
+
+                    <TableCell className="border-x text-center ">
+                      {product && neto?.toFixed(4)}
+                    </TableCell>
+
+                    <TableCell className="border-x text-center font-bold">
+                      {product && bruto2?.toFixed(4)}
+                    </TableCell>
+
+                    <TableCell className="border-x text-center">
+                      {product && neto2?.toFixed(4)}
+                    </TableCell>
+
+                    <TableCell
+                      className={cn(
+                        "text-end print:hidden",
+                        disabled && "hidden",
+                      )}
+                    >
+                      <div className="flex justify-between gap-2">
+                        <Trash2Icon
+                          className="cursor-pointer w-4 h-4 text-red-700"
+                          onClick={() =>
+                            isOnlyOne
+                              ? RecipeArray.replace({
+                                  nameId: "",
+                                  name: "",
+                                  unit: "",
+                                  quantity: "",
+                                  coefficient: "1",
+                                })
+                              : RecipeArray.remove(idx)
+                          }
+                        />
+
+                        {isLast && (
+                          <PlusIcon
+                            className="cursor-pointer w-4 h-4 text-green-700"
+                            onClick={() =>
+                              RecipeArray.append({
                                 nameId: "",
                                 name: "",
                                 unit: "",
                                 quantity: "",
                                 coefficient: "1",
                               })
-                            : RecipeArray.remove(idx)
-                        }
-                      />
+                            }
+                          />
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
 
-                      {isLast && (
-                        <PlusIcon
-                          className="cursor-pointer w-4 h-4 text-green-700"
-                          onClick={() =>
-                            RecipeArray.append({
-                              nameId: "",
-                              name: "",
-                              unit: "",
-                              quantity: "",
-                              coefficient: "1",
-                            })
-                          }
-                        />
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-
-            <TableRow className="font-semibold">
-              <TableCell colSpan={3} className="text-end">
-                Итого, кг
-              </TableCell>
-              <TableCell className="text-center">
-                {computedValues.totals.totalBruto.toFixed(2)}
-              </TableCell>
-              <TableCell className="text-center">
-                {computedValues.totals.totalNeto.toFixed(2)}
-              </TableCell>
-              <TableCell className="text-center">
-                {computedValues.totals.totalBruto_2.toFixed(2)}
-              </TableCell>
-              <TableCell className="text-center">
-                {computedValues.totals.totalNeto_2.toFixed(2)}
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+              <TableRow className="font-semibold">
+                <TableCell colSpan={3} className="text-end">
+                  Итого, кг
+                </TableCell>
+                <TableCell className="text-center">
+                  {computedValues.totals.totalBruto.toFixed(2)}
+                </TableCell>
+                <TableCell className="text-center">
+                  {computedValues.totals.totalNeto.toFixed(2)}
+                </TableCell>
+                <TableCell className="text-center">
+                  {computedValues.totals.totalBruto_2.toFixed(2)}
+                </TableCell>
+                <TableCell className="text-center">
+                  {computedValues.totals.totalNeto_2.toFixed(2)}
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
 
         <div>
           <Label className="my-2">Технология приготовления:</Label>
           <Textarea
-            className="resize-none text-xs"
+            className="resize-none text-xs p-4"
             {...form.register("description")}
           />
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          className={cn(
-            "w-24 cursor-pointer text-red-600",
-            disabled && "hidden",
-          )}
-          onClick={() => reset()}
-          disabled={disabled || !isEdit}
-        >
-          очистить
-        </Button>
       </div>
     </FormWrapper>
   );

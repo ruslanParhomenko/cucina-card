@@ -2,6 +2,7 @@ import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -11,25 +12,41 @@ export default function ModalConfirm({
   open,
   setOpen,
   handleConfirm,
-  message,
+  confirmDisabled,
+  dialogText = "confirm",
+  descriptionText,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   handleConfirm: () => void;
-  message: "сохранить" | "обновить" | "удалить" | "добавить";
+  confirmDisabled?: boolean;
+  dialogText?: string;
+  descriptionText?: string;
 }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle></DialogTitle>
+          <DialogTitle>{dialogText}</DialogTitle>
+          <DialogDescription>{descriptionText}</DialogDescription>
         </DialogHeader>
-        {`Вы действительно хотите ${message} ?`}
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            отмена
-          </Button>
-          <Button onClick={handleConfirm}>подтвердить</Button>
+          <div className="flex w-full items-center justify-end gap-8">
+            <Button
+              onClick={handleConfirm}
+              className="w-28"
+              disabled={confirmDisabled}
+            >
+              confirm
+            </Button>
+            <Button
+              variant="destructive"
+              className="w-28"
+              onClick={() => setOpen(false)}
+            >
+              cancel
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

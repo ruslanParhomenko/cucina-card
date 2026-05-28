@@ -127,3 +127,8 @@
 html {
   overflow-y: scroll;
 }
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.2s;
+}

@@ -15,7 +15,7 @@ export default function TabsOptions({
 }) {
   return (
     <Tabs value={value} onValueChange={setValue}>
-      <TabsList className="flex h-8! md:h-9! md:gap-2">
+      <TabsList className="flex h-8!  md:gap-2">
         {options.map((item, idx) => {
           const isActive = value === item.value;
           return (
@@ -24,7 +24,7 @@ export default function TabsOptions({
               value={item.value}
               disabled={isPending}
               className={cn(
-                "w-21 cursor-pointer md:w-32",
+                "w-24 cursor-pointer md:w-32",
                 isPending && "opacity-50",
                 isActive && "font-bold text-blue-600!",
               )}

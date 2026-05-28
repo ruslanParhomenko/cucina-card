@@ -1,5 +1,13 @@
 packages:
   - .
+allowBuilds:
+  '@firebase/util': false
+  esbuild: false
+  protobufjs: false
+  sharp: false
+  unrs-resolver: false
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
+minimumReleaseAgeExclude:
+  - lucide-react@1.17.0

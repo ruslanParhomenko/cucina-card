@@ -1,6 +1,9 @@
-import NavMenuHeader from "@/components/nav-menu/nav-menu";
+import NavLayout from "@/components/nav-layout/nav-menu";
+
 import NotPermission from "@/components/page/not-permission";
 import { authOptions } from "@/lib/auth";
+import ClientRefProvider from "@/providers/client-ref-provider";
+import EditProvider from "@/providers/edit-provider";
 import { getServerSession } from "next-auth";
 
 const ACCESS_ROLE = ["ADMIN", "CUCINA", "MNGR", "BAR"];
@@ -25,9 +28,12 @@ export default async function HomeLayout({
     );
   }
   return (
-    <div className="flex flex-col h-screen">
-      <div className="flex-1">{children}</div>
-      <NavMenuHeader />
+    <div className="flex flex-col h-dvh">
+      <EditProvider>
+        <ClientRefProvider>
+          <NavLayout>{children}</NavLayout>
+        </ClientRefProvider>
+      </EditProvider>
     </div>
   );
 }

@@ -1,43 +1,31 @@
-"use client";
 import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
-import { useRouter } from "next/navigation";
+import { SaveIcon } from "lucide-react";
 
-export default function SaveExitButton({
-  resetForm,
-  disabled = false,
-  url,
+export default function SaveButton({
+  formId,
+  className,
+  isEdit,
+  disabled = true,
+  size = 16,
 }: {
-  resetForm?: () => void;
+  formId: string;
+  className?: string;
+  isEdit: boolean;
   disabled?: boolean;
-  url?: string;
+  size?: number;
 }) {
-  const router = useRouter();
-  const exit = () => router.push(url || "/");
   return (
-    <div className={cn("flex gap-4 w-full justify-end sticky bottom-0 py-2")}>
-      <Button
-        type="button"
-        variant="ghost"
-        className={cn("w-24 cursor-pointer", disabled && "hidden")}
-        onClick={() => resetForm && resetForm()}
-      >
-        очистить
-      </Button>
-      <Button
-        type="button"
-        variant="destructive"
-        className="w-24 cursor-pointer"
-        onClick={exit}
-      >
-        выйти
-      </Button>
-      <Button
-        type="submit"
-        className={cn("w-24 cursor-pointer", disabled && "hidden")}
-      >
-        сохранить
-      </Button>
-    </div>
+    <button
+      form={formId}
+      type="submit"
+      disabled={disabled}
+      className={cn(className, "cursor-pointer")}
+    >
+      <SaveIcon
+        size={size}
+        className={cn("text-bl", isEdit ? "text-rd" : "opacity-50")}
+        strokeWidth={1.5}
+      />
+    </button>
   );
 }

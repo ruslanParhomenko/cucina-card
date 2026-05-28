@@ -13,38 +13,31 @@ import { toast } from "sonner";
 import { productDefaultValues, productSchema, ProductType } from "./schema";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { SaveIcon, SaveOff } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import ActionButton from "@/components/buttons/action-button";
+import { useEdit } from "@/providers/edit-provider";
 
 export default function ProductForm({
   data,
   disabled = false,
-  isCreate = false,
 }: {
   data?: ProductType;
   disabled?: boolean;
-  isCreate?: boolean;
 }) {
   const router = useRouter();
-  const session = useSession();
+
   const pathname = usePathname();
-  const isAdmin = session.data?.user?.role === "ADMIN";
+
   const id = data?.id;
 
-  const [isEdit, setIsEdit] = useState(isCreate);
+  const { isEdit, setIsEdit, registerReset, registerDelete } = useEdit();
 
   const form = useForm<ProductType>({
     resolver: zodResolver(productSchema),
     defaultValues: productDefaultValues,
     mode: "onChange",
   });
-  const url = "/home#tab=products";
   const onSubmit: SubmitHandler<any> = async (data) => {
     try {
       if (!id) {
@@ -71,41 +64,26 @@ export default function ProductForm({
 
       toast.error("Ошибка сохранения продукта");
     }
-
-    router.push(url);
+    setIsEdit(false);
+    router.back();
   };
 
   useEffect(() => {
     if (!data) return;
     form.reset(data);
+    if (!id) return;
+    registerDelete(async () => {
+      await deleteProduct(id);
+    });
   }, [data]);
+
+  useEffect(() => {
+    registerReset(() => form.reset(productDefaultValues));
+  }, []);
 
   return (
     <FormWrapper form={form} onSubmit={onSubmit} id={pathname}>
-      <div className="flex flex-col gap-8">
-        {isAdmin && (
-          <div className="flex w-full justify-between items-center">
-            {id && <ActionButton id={id} handleDelete={deleteProduct} />}
-
-            <button
-              type="button"
-              onClick={() => isAdmin && setIsEdit((prev) => !prev)}
-              className="flex  cursor-pointer"
-            >
-              {isEdit ? (
-                <div className="text-rd flex gap-4 justify-center items-center">
-                  <SaveIcon className="h-4 w-4 text-blue-600" />
-                  save mode
-                </div>
-              ) : (
-                <div className="text-rd flex gap-4 justify-center items-center">
-                  <SaveOff className="h-4 w-4 text-red-600" />
-                  view mode
-                </div>
-              )}
-            </button>
-          </div>
-        )}
+      <div className="flex flex-col gap-8  justify-center">
         <TextInput
           fieldLabel="продукт"
           fieldName="name"
@@ -133,18 +111,6 @@ export default function ProductForm({
           fieldName="id"
           disabled={disabled || !isEdit}
         />
-        <Button
-          type="button"
-          variant="ghost"
-          className={cn(
-            "w-24 cursor-pointer text-red-600",
-            disabled && "hidden",
-          )}
-          onClick={() => form.reset(productDefaultValues)}
-          disabled={disabled || !isEdit}
-        >
-          очистить
-        </Button>
       </div>
     </FormWrapper>
   );
