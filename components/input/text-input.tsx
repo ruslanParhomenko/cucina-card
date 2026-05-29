@@ -9,6 +9,7 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { cn } from "@/lib/utils";
+import { Label } from "../ui/label";
 
 export default function TextInput({
   fieldName,
@@ -17,6 +18,7 @@ export default function TextInput({
   disabled = false,
   description,
   classNameInput,
+  classNameLabel,
   type = "text",
   orientation = "vertical",
 }: {
@@ -26,6 +28,7 @@ export default function TextInput({
   disabled?: boolean;
   description?: string;
   classNameInput?: string;
+  classNameLabel?: string;
   type?: string;
   orientation?: "horizontal" | "vertical";
 }) {
@@ -42,19 +45,28 @@ export default function TextInput({
           )}
         >
           <FormLabel
-            className={cn(orientation === "horizontal" && "border-b px-2")}
+            className={cn(
+              orientation === "horizontal" && "border-b px-2 text-xs",
+            )}
           >
             {fieldLabel}
           </FormLabel>
-          <FormControl className={cn(classNameInput, "w-full")}>
-            <Input
-              placeholder={placeholder}
-              {...field}
-              value={field.value ?? ""}
-              disabled={disabled}
-              type={type}
-            />
-          </FormControl>
+
+          {disabled ? (
+            <Label className={cn("border-b px-3 py-0.5", classNameLabel)}>
+              {field.value || placeholder || "-"}
+            </Label>
+          ) : (
+            <FormControl className={cn(classNameInput, "w-full")}>
+              <Input
+                placeholder={placeholder}
+                {...field}
+                value={field.value ?? ""}
+                type={type}
+              />
+            </FormControl>
+          )}
+
           <FormDescription>{description}</FormDescription>
           <FormMessage />
         </FormItem>

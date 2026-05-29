@@ -1,6 +1,6 @@
 "use server";
 
-import { CalculationCardType } from "@/features/card/schema";
+import { CalculationCardType } from "@/features/card-create/schema";
 import { dbCard } from "@/lib/firebase-admin";
 
 import { unstable_cache, updateTag } from "next/cache";

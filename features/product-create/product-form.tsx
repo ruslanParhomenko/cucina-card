@@ -69,17 +69,16 @@ export default function ProductForm({
   };
 
   useEffect(() => {
-    if (!data) return;
-    form.reset(data);
-    if (!id) return;
-    registerDelete(async () => {
-      await deleteProduct(id);
-    });
-  }, [data]);
-
-  useEffect(() => {
+    if (data) {
+      form.reset(data);
+      registerDelete(async () => {
+        await deleteProduct(data.id);
+      });
+    } else {
+      setIsEdit(true);
+    }
     registerReset(() => form.reset(productDefaultValues));
-  }, []);
+  }, [data]);
 
   return (
     <FormWrapper form={form} onSubmit={onSubmit} id={pathname}>

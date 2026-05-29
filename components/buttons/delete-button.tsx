@@ -5,28 +5,28 @@ import { useState, useTransition } from "react";
 import ModalConfirm from "../modal/ModalConfirm";
 import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import { useEdit } from "@/providers/edit-provider";
 
-export default function DeleteButton({
-  disabled = true,
-  dialogText,
-  descriptionText,
-  onDelete,
-  className,
-  isEdit,
-  setIsEdit,
-  size = 16,
-}: {
-  disabled?: boolean;
-  dialogText: string;
-  descriptionText: string;
+type Props = {
+  dialogText?: string;
+  descriptionText?: string;
   onDelete: () => Promise<void> | void;
   className?: string;
-  isEdit: boolean;
-  setIsEdit: (isEdit: boolean) => void;
   size?: number;
-}) {
+};
+
+export default function DeleteButton({
+  dialogText = "Вы уверены что хотите удалить?",
+  descriptionText = "Это действие нельзя будет отменить",
+  onDelete,
+  className,
+  size = 16,
+}: Props) {
+  const { isEdit } = useEdit();
+
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "ADMIN";
+
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -36,6 +36,8 @@ export default function DeleteButton({
       await onDelete();
     });
   };
+
+  if (!isEdit) return null;
 
   return (
     <>
@@ -49,10 +51,14 @@ export default function DeleteButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        disabled={(disabled && !isAdmin) || isPending}
+        disabled={!isAdmin || isPending}
         className={cn(className, "cursor-pointer hover:text-black")}
       >
-        <Trash2Icon size={size} className="text-red-600" strokeWidth={1.5} />
+        <Trash2Icon
+          size={size}
+          strokeWidth={2}
+          className="text-white hover:text-red-800"
+        />
       </button>
     </>
   );

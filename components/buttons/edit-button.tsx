@@ -1,34 +1,34 @@
-import { cn } from "@/lib/utils";
-import { LogOut, PenBox } from "lucide-react";
+"use client";
+import { useEdit } from "@/providers/edit-provider";
+import { PenBox, PencilOff } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 export default function EditButton({
   className,
-  disabled = true,
-  isEdit,
-  setIsEdit,
   size = 16,
 }: {
   className?: string;
-  disabled?: boolean;
-  isEdit: boolean;
-  setIsEdit: (isEdit: boolean) => void;
   size?: number;
 }) {
+  const { isEdit, setIsEdit } = useEdit();
+
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
   return (
     <button
       type="button"
       onClick={() => setIsEdit(!isEdit)}
-      className={cn(
-        className,
-        "cursor-pointer hover:text-black",
-        disabled && "opacity-50",
-      )}
-      disabled={disabled}
+      className={className}
+      disabled={!isAdmin}
     >
       {isEdit ? (
-        <LogOut size={size} className="text-rd" strokeWidth={1.5} />
+        <PencilOff size={size} strokeWidth={2} className="text-white" />
       ) : (
-        <PenBox size={size} className="text-bl" strokeWidth={1.5} />
+        <PenBox
+          size={size}
+          strokeWidth={2}
+          className="text-white hover:text-green-600"
+        />
       )}
     </button>
   );

@@ -1,5 +1,5 @@
 "use server";
-import { ProductType } from "@/features/product/schema";
+import { ProductType } from "@/features/product-create/schema";
 import { dbCard } from "@/lib/firebase-admin";
 import { unstable_cache, updateTag } from "next/cache";
 

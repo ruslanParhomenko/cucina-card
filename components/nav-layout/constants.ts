@@ -30,8 +30,14 @@ export const PRODUCT_ACTION_BUTTON = [
   "save",
 ];
 
+export const HOME_ACTION_BUTTON = ["print", "add"];
+
 export const NAV_BY_PATCH = {
-  home: { tabs: HOME_NAV_ITEMS, selectOptions: true, actionButton: ["print"] },
+  home: {
+    tabs: HOME_NAV_ITEMS,
+    selectOptions: true,
+    actionButton: HOME_ACTION_BUTTON,
+  },
   product: {
     tabs: [],
     selectOptions: false,

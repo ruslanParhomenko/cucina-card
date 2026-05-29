@@ -1,30 +1,31 @@
-import { cn } from "@/lib/utils";
+import { useEdit } from "@/providers/edit-provider";
 import { SaveIcon } from "lucide-react";
+import { useSession } from "next-auth/react";
 
-export default function SaveButton({
-  formId,
-  className,
-  isEdit,
-  disabled = true,
-  size = 16,
-}: {
+type Props = {
   formId: string;
   className?: string;
-  isEdit: boolean;
-  disabled?: boolean;
   size?: number;
-}) {
+};
+
+export default function SaveButton({ formId, className, size = 16 }: Props) {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
+
+  const { isEdit } = useEdit();
+
+  if (!isEdit) return null;
   return (
     <button
       form={formId}
       type="submit"
-      disabled={disabled}
-      className={cn(className, "cursor-pointer")}
+      disabled={!isAdmin}
+      className={className}
     >
       <SaveIcon
         size={size}
-        className={cn("text-bl", isEdit ? "text-rd" : "opacity-50")}
-        strokeWidth={1.5}
+        strokeWidth={2}
+        className="text-white hover:text-black"
       />
     </button>
   );

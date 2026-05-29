@@ -33,7 +33,7 @@ import {
   calculationCardSchema,
   CalculationCardType,
 } from "./schema";
-import { ProductType } from "../product/schema";
+import { ProductType } from "../product-create/schema";
 import { useLocalStorageForm } from "@/hooks/use-local-storage";
 import {
   createCard,
@@ -186,17 +186,16 @@ export default function CardForm({
     if (dataCard) {
       form.reset(dataCard);
       RecipeArray.replace(dataCard.recipe);
-    }
-    if (idCard) {
       registerDelete(async () => {
-        await deleteCard(idCard);
+        await deleteCard(dataCard.id);
       });
+    } else {
+      form.reset(calculationCardDefaultValues);
     }
+
+    registerReset(() => form.reset(calculationCardDefaultValues));
   }, [dataCard]);
 
-  useEffect(() => {
-    registerReset(() => form.reset(calculationCardDefaultValues));
-  }, []);
   if (!isLoaded) {
     return (
       <div className="flex items-center justify-center h-screen w-full">
@@ -205,19 +204,24 @@ export default function CardForm({
     );
   }
 
-  const reset = () => {
-    resetForm(calculationCardDefaultValues);
-  };
-
   return (
     <FormWrapper form={form} onSubmit={onSubmit} id={pathname}>
       <div className="flex flex-col h-[88dvh] p-2 print:p-8">
         <div className="flex flex-col gap-1">
           <TextInput
+            fieldLabel="Наименование"
+            fieldName="name"
+            orientation="horizontal"
+            classNameInput="h-5! border-0 shadow-none border-b rounded-none font-bold"
+            classNameLabel="font-bold text-base"
+            disabled={disabled}
+          />
+          <TextInput
             fieldLabel="Тех карта:"
             fieldName="id"
             orientation="horizontal"
             classNameInput="h-5! border-0 shadow-none border-b rounded-none"
+            classNameLabel="font-normal text-xs"
             disabled={disabled}
           />
 
@@ -227,14 +231,7 @@ export default function CardForm({
             orientation="horizontal"
             options={CATEGORY}
             classNameSelect="border-0 shadow-none border-b rounded-none text-black! h-5! [&>svg]:hidden"
-            disabled={disabled}
-          />
-
-          <TextInput
-            fieldLabel="Наименование"
-            fieldName="name"
-            orientation="horizontal"
-            classNameInput="h-5! border-0 shadow-none border-b rounded-none font-bold"
+            classNameLabel="font-normal text-xs"
             disabled={disabled}
           />
 
@@ -243,6 +240,7 @@ export default function CardForm({
             fieldName="expirationPeriod"
             orientation="horizontal"
             classNameInput="h-5! border-0 shadow-none border-b rounded-none"
+            classNameLabel="font-normal text-xs"
             disabled={disabled}
           />
 
@@ -251,6 +249,7 @@ export default function CardForm({
             fieldName="weight"
             orientation="horizontal"
             classNameInput="h-5! border-0 shadow-none border-b rounded-none"
+            classNameLabel="font-normal text-xs"
             disabled={disabled}
           />
         </div>
@@ -274,26 +273,28 @@ export default function CardForm({
                     {category === "pf" || weight === "kg" ? "кг" : "порция"}
                   </div>
                 </TableHead>
-                <TableHead className="w-14" />
+                {isEdit && <TableHead className="w-14" />}
               </TableRow>
 
               <TableRow>
-                <TableHead className="w-8 border-r"></TableHead>
-                <TableHead className="text-center">продукт</TableHead>
+                <TableHead className="w-6 border-r"></TableHead>
+                <TableHead className="text-center text-xs md:text-sm">
+                  продукт
+                </TableHead>
                 <TableHead className="border-x w-16 text-center">ед</TableHead>
-                <TableHead className="border-x w-30 text-center">
+                <TableHead className="border-x w-30 text-center text-xs md:text-sm">
                   брутто
                 </TableHead>
-                <TableHead className="border-x w-30 text-center">
+                <TableHead className="border-x w-30 text-center text-xs md:text-sm">
                   нетто
                 </TableHead>
-                <TableHead className="border-x w-30 text-center">
+                <TableHead className="border-x w-30 text-center text-xs md:text-sm">
                   брутто
                 </TableHead>
-                <TableHead className="border-x w-30 text-center">
+                <TableHead className="border-x w-30 text-center text-xs md:text-sm">
                   нетто
                 </TableHead>
-                <TableHead className="w-18" />
+                {isEdit && <TableHead className="w-18" />}
               </TableRow>
             </TableHeader>
 
@@ -306,7 +307,7 @@ export default function CardForm({
                 const isOnlyOne = RecipeArray.fields.length === 1;
 
                 return (
-                  <TableRow key={field.id} className="[&>td]:py-0">
+                  <TableRow key={field.id} className="[&>td]:py-0.5">
                     <TableCell className="border-r text-start px-1 text-xs">
                       {idx + 1}
                     </TableCell>
@@ -329,7 +330,7 @@ export default function CardForm({
                             product?.unit ?? "",
                           );
                         }}
-                        className="border-0 h-7!"
+                        className="border-0 h-7 p-0 md:p-2 md:text-sm text-xs min-w-16"
                         disabled={disabled}
                       />
                     </TableCell>
@@ -346,6 +347,7 @@ export default function CardForm({
                       <NumericInput
                         fieldName={`recipe.${idx}.quantity`}
                         className="border-0 shadow-none rounded-none w-full h-7 text-center p-0"
+                        classNameLabel="font-normal text-xs"
                         disabled={disabled}
                         floating={true}
                       />
@@ -353,66 +355,63 @@ export default function CardForm({
                     <TableCell className="border-x  hidden md:table-cell">
                       <input
                         {...form.register(`recipe.${idx}.quantity`)}
-                        className="border-0 shadow-none rounded-none w-full h-7 text-center font-bold"
+                        className="border-0 shadow-none rounded-none w-full h-7 text-center"
                         disabled={disabled}
                       />
                     </TableCell>
 
-                    <TableCell className="border-x text-center ">
+                    <TableCell className="border-x text-center text-xs md:text-sm">
                       {product && neto?.toFixed(4)}
                     </TableCell>
 
-                    <TableCell className="border-x text-center font-bold">
+                    <TableCell className="border-x text-center md:font-bold text-xs md:text-sm">
                       {product && bruto2?.toFixed(4)}
                     </TableCell>
 
-                    <TableCell className="border-x text-center">
+                    <TableCell className="border-x text-center text-xs md:text-sm">
                       {product && neto2?.toFixed(4)}
                     </TableCell>
 
-                    <TableCell
-                      className={cn(
-                        "text-end print:hidden",
-                        disabled && "hidden",
-                      )}
-                    >
-                      <div className="flex justify-between gap-2">
-                        <Trash2Icon
-                          className="cursor-pointer w-4 h-4 text-red-700"
-                          onClick={() =>
-                            isOnlyOne
-                              ? RecipeArray.replace({
+                    {isEdit && (
+                      <TableCell className={cn("text-end print:hidden")}>
+                        <div className="flex justify-between gap-2">
+                          <Trash2Icon
+                            className="cursor-pointer w-4 h-4 text-red-700"
+                            onClick={() =>
+                              isOnlyOne
+                                ? RecipeArray.replace({
+                                    nameId: "",
+                                    name: "",
+                                    unit: "",
+                                    quantity: "",
+                                    coefficient: "1",
+                                  })
+                                : RecipeArray.remove(idx)
+                            }
+                          />
+
+                          {isLast && (
+                            <PlusIcon
+                              className="cursor-pointer w-4 h-4 text-green-700"
+                              onClick={() =>
+                                RecipeArray.append({
                                   nameId: "",
                                   name: "",
                                   unit: "",
                                   quantity: "",
                                   coefficient: "1",
                                 })
-                              : RecipeArray.remove(idx)
-                          }
-                        />
-
-                        {isLast && (
-                          <PlusIcon
-                            className="cursor-pointer w-4 h-4 text-green-700"
-                            onClick={() =>
-                              RecipeArray.append({
-                                nameId: "",
-                                name: "",
-                                unit: "",
-                                quantity: "",
-                                coefficient: "1",
-                              })
-                            }
-                          />
-                        )}
-                      </div>
-                    </TableCell>
+                              }
+                            />
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
 
-              <TableRow className="font-semibold">
+              <TableRow className="md:font-semibold">
                 <TableCell colSpan={3} className="text-end">
                   Итого, кг
                 </TableCell>

@@ -1,10 +1,8 @@
 "use client";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { CATEGORY_PRODUCT, CATEGORY_UNIT } from "../product/constants";
-import { useState } from "react";
+import { CATEGORY_PRODUCT, CATEGORY_UNIT } from "../product-create/constants";
 import { useRouter } from "next/navigation";
-import { ProductType } from "../product/schema";
-import { useHashParam } from "@/hooks/use-hash";
+import { ProductType } from "../product-create/schema";
 
 interface ProductsTableProps {
   data: ProductType[];
@@ -12,12 +10,6 @@ interface ProductsTableProps {
 
 export default function ProductsTable({ data }: ProductsTableProps) {
   const router = useRouter();
-
-  const [valueFilterProducts] = useHashParam("filter-products");
-
-  const [itemSearch, setItemSearch] = useState<string>("");
-  const [idSearch, setIdSearch] = useState<string>("");
-  const normalizedSearch = itemSearch.trim().toLowerCase();
 
   const handleView = (id: string) => {
     router.push(`/product/${id}#tab=products`);
@@ -28,7 +20,7 @@ export default function ProductsTable({ data }: ProductsTableProps) {
       <Table className="table-fixed">
         <TableBody>
           {data.map((product, index) => (
-            <TableRow key={product.id} className="[&>td]:py-1.5">
+            <TableRow key={product.id} className="[&>td]:py-2">
               <TableCell className="w-6 text-xs px-2">{index + 1}</TableCell>
               <TableCell
                 className="truncate cursor-pointer text-blue-600 w-44 text-xs px-4"

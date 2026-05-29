@@ -1,4 +1,4 @@
-import LogOutButton from "../buttons/log-out-button";
+import LogOutButton from "../buttons/logout-button";
 
 export default function NotPermission({
   email,

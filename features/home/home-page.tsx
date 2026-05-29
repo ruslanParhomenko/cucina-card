@@ -1,10 +1,10 @@
 "use client";
 
-import { CalculationCardType } from "../card/schema";
-import { ProductType } from "../product/schema";
+import { CalculationCardType } from "../card-create/schema";
+import { ProductType } from "../product-create/schema";
 
-import CardTable from "@/features/card-table/card-page";
-import ProductsTable from "../products-table/products-page";
+import CardTable from "@/features/card-data/card-page";
+import ProductsTable from "../products-data/products-page";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
@@ -16,7 +16,7 @@ export default function HomePage({
     dataCards: CalculationCardType[];
   };
 }) {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() || "cards";
 
   const tab = searchParams.get("tab");
   const filterCards = searchParams.get("filter-cards");
@@ -48,7 +48,6 @@ export default function HomePage({
       a.name.localeCompare(b.name, "ru", { sensitivity: "base" }),
     );
 
-  if (!tab) return null;
   return (
     <div className="flex flex-col h-[90dvh]">
       {tab === "cards" && <CardTable data={dataCards} />}

@@ -3,7 +3,11 @@ import { CATEGORY_PRODUCT, CATEGORY_UNIT } from "./constants";
 
 export const unitEnum = z.enum(
   CATEGORY_UNIT.map((u) => u.value) as ["kg", "l", "pcs"],
+  {
+    message: "Неверная единица измерения",
+  },
 );
+
 export const categoryEnum = z.enum(
   CATEGORY_PRODUCT.map((u) => u.value) as [
     "vegetables_fruits",
@@ -20,6 +24,9 @@ export const categoryEnum = z.enum(
     "bakery",
     "confectionery",
   ],
+  {
+    message: "Неверная категория продукта",
+  },
 );
 
 export const productSchema = z.object({

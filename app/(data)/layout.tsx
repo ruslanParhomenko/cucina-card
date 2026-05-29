@@ -1,4 +1,4 @@
-import NavLayout from "@/components/nav-layout/nav-menu";
+import NavLayout from "@/components/nav-layout/nav-layout";
 
 import NotPermission from "@/components/page/not-permission";
 import { authOptions } from "@/lib/auth";
